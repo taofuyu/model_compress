@@ -19,7 +19,7 @@ def _main():
     parser.add_argument('--weight_file')
     parser.add_argument('--deploy_file')
     parser.add_argument('--save_path')
-    parser.add_argument('--threshold')
+    parser.add_argument('--sensitivity')
     parser.add_argument('--test_imgs_path')
     parser.add_argument('--log_file',default='./log/log.txt')
 
@@ -31,7 +31,7 @@ def _main():
     util.log(args.log_file, 'raw model size: {}'.format(str(os.path.getsize(model))))
     #pruning and save
     if True:
-        pruning_model = pruning.pruning(model, args.threshold)
+        pruning_model = pruning.pruning(model, args.sensitivity)
         #to retrain .......
         mAP = util.compute_mAP(pruning_model, args.test_imgs_path)
         util.log(args.log_file, 'mAP after pruning: {}'.format(mAP))
