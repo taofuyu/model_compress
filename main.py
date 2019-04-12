@@ -21,19 +21,22 @@ def _main():
     parser.add_argument('--save_path')
     parser.add_argument('--sensitivity')
     parser.add_argument('--test_imgs_path')
+    parser.add_argument('--gt_bb_class_file')
     parser.add_argument('--log_file',default='./log/log.txt')
 
     args = parser.parse_args()
 
+    #num_classes = len()
     model = load_model(args.weight_file)
-    mAP = util.compute_mAP(model, args.test_imgs_path)
+    model_out = model.metrics_name
+    mAP = util.compute_mAP()
     util.log(args.log_file, 'raw mAP: {}'.format(mAP))
     util.log(args.log_file, 'raw model size: {}'.format(str(os.path.getsize(model))))
     #pruning and save
     if True:
         pruning_model = pruning.pruning(model, args.sensitivity)
         #to retrain .......
-        mAP = util.compute_mAP(pruning_model, args.test_imgs_path)
+        mAP = util.compute_mAP()
         util.log(args.log_file, 'mAP after pruning: {}'.format(mAP))
         pruning_model.save(save_path+'yolov3-spp-pruning.h5')
         util.log(args.log_file, 'pruning model size: {}'.format(str(os.path.getsize(save_path+'yolov3-spp-pruning.h5'))))

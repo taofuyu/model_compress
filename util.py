@@ -10,4 +10,5 @@ def log(filename, content):
     with open(filename,'a') as f:
         f.write(time_stamp + ': '+ content+'\n')
 
-def compute_mAP(model, test_imgs_path):
+def compute_mAP(model, test_imgs_path, num_classes, gt_bb_class_file):
+    
