@@ -32,8 +32,8 @@ def reset_weights(raw_weights, kmeans_weights):
                         count = count + 1
     return raw_weights
 
-def share_weights(model,bits):
-    for layer in model.layers:
+def share_weights(yolo_obj, bits):
+    for layer in yolo_obj.yolo_model.layers:
         if layer.name.split('_')[0] == 'conv2d':
             layer_weights = layer.get_weights()
             for i in range(len(layer_weights)):
@@ -49,7 +49,7 @@ def share_weights(model,bits):
                 #use min/max value to create a linspace. 
                 #n bits means this linspace will be set to 2**n segments between [min,max]
                 linspace = np.linspace(min_val, max_val, num=2**bits)
-                #use linspace to create a KMeans object
+                #use linspace to set cluster centers
                 Kmeans = KMeans(n_clusters=len(linspace), init=linspace.reshape(-1,1), n_init=1, precompute_distances=True, algorithm="full")
                 #perform Kmeans proc
                 Kmeans.fit(sparse_mat.data.reshape(-1,1))
@@ -58,13 +58,7 @@ def share_weights(model,bits):
 
                 layer_weights[i] = reset_weights(layer_weights[i], new_weights)
             layer.set_weights(layer_weights)
-    return model
-
-if __name__ == '__main__':
-    model = load_model('/home/tao/Downloads/keras-yolo3-master/model_data/yolov3-spp-pruning.h5')
-    #model = pruning.pruning(model,0.25)##save this model to truly change weights
-    model = share_weights(model,5)
-    model.save('yolov3-spp-quan.h5')
+    return yolo_obj
 
 
 

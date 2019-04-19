@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 CUDA_VISIBLE_DEVICES=0 python3 main.py \
-    --weight_file=./models/yolov3-spp.h5 \
-    --deploy_file=./models/yolov3-spp.cfg \
-    --save_path=./pruninged_models/ \
+    --save_path=./saves/ \
     --sensitivity=0.25 \
-    --test_imgs_path=./test_imgs/
+    --raw_model_path=./models/trained_weights_stage_1.h5 \
+    --test_img_path=./test_imgs/

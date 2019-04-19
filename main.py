@@ -1,10 +1,9 @@
-import pruning
-import quantizes_weight
-#import huffman_code
 import argparse
 import os
 import util
-from keras.models import load_model
+from yolo import YOLO
+from pruning import pruning
+from quantizes_weight import share_weights
 
 ###############################################################################################################
 #
@@ -16,35 +15,31 @@ from keras.models import load_model
 
 def _main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weight_file')
-    parser.add_argument('--deploy_file')
-    parser.add_argument('--save_path')
-    parser.add_argument('--sensitivity')
-    parser.add_argument('--test_imgs_path')
-    parser.add_argument('--gt_bb_class_file')
-    parser.add_argument('--log_file',default='./log/log.txt')
+    parser.add_argument('--save_path',default='./saves/')
+    parser.add_argument('--sensitivity',default=0.25)
+    parser.add_argument('--test_img_path',default='./test_imgs/')
+    parser.add_argument('--raw_model_path')
+
 
     args = parser.parse_args()
 
-    #num_classes = len()
-    model = load_model(args.weight_file)
-    model_out = model.metrics_name
-    mAP = util.compute_mAP()
-    util.log(args.log_file, 'raw mAP: {}'.format(mAP))
-    util.log(args.log_file, 'raw model size: {}'.format(str(os.path.getsize(model))))
+    #init yolo object. Its members include default model file\anchor file\class file
+    #to use own params above, pass **kwargs to YOLO()
+    raw_yolo = YOLO(model_path=args.raw_model_path)
+    util.detect_and_save(raw_yolo, args.test_img_path, args.save_path+'raw_model/')
     #pruning and save
     if True:
-        pruning_model = pruning.pruning(model, args.sensitivity)
-        #to retrain .......
-        mAP = util.compute_mAP()
-        util.log(args.log_file, 'mAP after pruning: {}'.format(mAP))
-        pruning_model.save(save_path+'yolov3-spp-pruning.h5')
-        util.log(args.log_file, 'pruning model size: {}'.format(str(os.path.getsize(save_path+'yolov3-spp-pruning.h5'))))
-    
+        pruning_yolo = pruning(raw_yolo, args.sensitivity)
+        #use YOLO_OBJ.yolo_model to get corresponding weights
+        pruning_yolo.yolo_model.save('models/model_after_pruning.h5')
+        #to retrain and reload model.......
+        util.detect_and_save(pruning_yolo, args.test_img_path, args.save_path+'prun_model/')
+        
     #quantizes weight by sharing weights
     if True:
-        quantized_model = quantizes_weight.share_weights(pruning_model)
+        quantized_yolo = share_weights(pruning_yolo)
+        quantized_yolo.yolo_model.save('models/model_after_quan.h5')
+        util.detect_and_save(quantized_yolo, args.test_img_path, args.save_path+'quan_model/')
         
-
 if __name__ == '__main__':
     _main()
